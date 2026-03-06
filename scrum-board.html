@@ -1,0 +1,251 @@
+<!-- file: scrum-board.html -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sync Tracker • Scrum Board</title>
+    <link rel="stylesheet" href="styles.css" />
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+  </head>
+
+  <body>
+    <div class="topbar">
+      <div class="row">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>Sync Tracker</h1>
+            <p>Scrum board</p>
+          </div>
+        </div>
+
+        <div class="nav">
+          <a class="btn" href="manager.html">Overview</a>
+          <a class="btn" href="project-status.html">Project Status</a>
+          <a class="btn" href="project-timeline.html">Project Timeline</a>
+          <a class="btn" href="dashboard.html">Dashboard</a>
+          <button class="btn danger" id="logoutBtn" type="button">Logout</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container" id="scrumPage">
+      <div class="scrumHero">
+        <div>
+          <h2 class="scrumTitle">Engineering Scrum Board</h2>
+          <p class="small">
+            Plan work, assign ownership, and track progress across each delivery stage.
+          </p>
+        </div>
+      </div>
+
+      <div class="scrumTopGrid">
+        <div class="card scrumComposerCard">
+          <div class="scrumCardHead">
+            <div>
+              <h2>Create Task</h2>
+              <p class="small">Add a task and assign it to a teammate.</p>
+            </div>
+          </div>
+
+          <input type="hidden" id="taskId" />
+
+          <div class="grid" style="margin-top: 14px">
+            <div class="field">
+              <label for="taskTitle">Task Title</label>
+              <input
+                id="taskTitle"
+                type="text"
+                placeholder="Example: Build login page"
+              />
+            </div>
+
+            <div class="grid two">
+              <div class="field">
+                <label for="taskProject">Project</label>
+                <select id="taskProject">
+                  <option value="">Select project</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="taskAssignee">Assign To</label>
+                <select id="taskAssignee">
+                  <option value="">Select teammate</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid two">
+              <div class="field">
+                <label for="taskPriority">Priority</label>
+                <select id="taskPriority">
+                  <option>Low</option>
+                  <option selected>Medium</option>
+                  <option>High</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="taskStatus">Status</label>
+                <select id="taskStatus">
+                  <option>Backlog</option>
+                  <option>To Do</option>
+                  <option selected>In Progress</option>
+                  <option>Review</option>
+                  <option>Done</option>
+                  <option>Blocked</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="taskDueDate">Due Date</label>
+              <input id="taskDueDate" type="date" />
+            </div>
+
+            <div class="field">
+              <label for="taskDescription">Description</label>
+              <textarea
+                id="taskDescription"
+                placeholder="Write task details"
+              ></textarea>
+            </div>
+
+            <div class="field">
+              <label for="taskBlockers">Blockers</label>
+              <textarea
+                id="taskBlockers"
+                placeholder="Dependencies, blockers, or risks"
+              ></textarea>
+            </div>
+
+            <div class="actionRow">
+              <button class="btn primary" id="taskSaveBtn" type="button">
+                Save Task
+              </button>
+            </div>
+
+            <div id="taskMsg" class="msg"></div>
+          </div>
+        </div>
+
+        <div class="card scrumFilterCard">
+          <div class="scrumCardHead">
+            <div>
+              <h2>Board Filters</h2>
+              <p class="small">Focus the board by project, teammate, or priority.</p>
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top: 14px">
+            <div class="field">
+              <label for="filterProject">Project</label>
+              <select id="filterProject">
+                <option value="__ALL__">All projects</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="filterAssignee">Assignee</label>
+              <select id="filterAssignee">
+                <option value="__ALL__">All teammates</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="filterPriority">Priority</label>
+              <select id="filterPriority">
+                <option value="__ALL__">All priorities</option>
+                <option>Low</option>
+                <option>Medium</option>
+                <option>High</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="scrumBoardHint">
+            <span class="chip">Tip</span>
+            <span class="small">Move tasks between lanes using the status dropdown on each card.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="scrumBoardShell">
+        <div class="boardWrap" id="scrumBoard">
+          <div class="boardColumn backlog">
+            <div class="boardColumnHead">
+              <div class="laneTitleWrap">
+                <span class="laneDot"></span>
+                <h3>Backlog</h3>
+              </div>
+              <span id="countBacklog" class="boardCount">0</span>
+            </div>
+            <div id="colBacklog" class="boardList"></div>
+          </div>
+
+          <div class="boardColumn todo">
+            <div class="boardColumnHead">
+              <div class="laneTitleWrap">
+                <span class="laneDot"></span>
+                <h3>To Do</h3>
+              </div>
+              <span id="countTodo" class="boardCount">0</span>
+            </div>
+            <div id="colTodo" class="boardList"></div>
+          </div>
+
+          <div class="boardColumn progress">
+            <div class="boardColumnHead">
+              <div class="laneTitleWrap">
+                <span class="laneDot"></span>
+                <h3>In Progress</h3>
+              </div>
+              <span id="countProgress" class="boardCount">0</span>
+            </div>
+            <div id="colProgress" class="boardList"></div>
+          </div>
+
+          <div class="boardColumn review">
+            <div class="boardColumnHead">
+              <div class="laneTitleWrap">
+                <span class="laneDot"></span>
+                <h3>Review</h3>
+              </div>
+              <span id="countReview" class="boardCount">0</span>
+            </div>
+            <div id="colReview" class="boardList"></div>
+          </div>
+
+          <div class="boardColumn done">
+            <div class="boardColumnHead">
+              <div class="laneTitleWrap">
+                <span class="laneDot"></span>
+                <h3>Done</h3>
+              </div>
+              <span id="countDone" class="boardCount">0</span>
+            </div>
+            <div id="colDone" class="boardList"></div>
+          </div>
+
+          <div class="boardColumn blocked">
+            <div class="boardColumnHead">
+              <div class="laneTitleWrap">
+                <span class="laneDot"></span>
+                <h3>Blocked</h3>
+              </div>
+              <span id="countBlocked" class="boardCount">0</span>
+            </div>
+            <div id="colBlocked" class="boardList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

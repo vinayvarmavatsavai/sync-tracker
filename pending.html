@@ -1,0 +1,50 @@
+<!-- pending.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sync Tracker • Pending</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="topbar">
+    <div class="row">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Team Pulse</h1>
+          <p>daily updates, made friendly</p>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="btn danger" id="logoutBtn" type="button">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" id="pendingBox">
+    <div class="card">
+      <h2>You’re in the waiting room ✨</h2>
+      <p>Your account is created. Managers will approve access soon.</p>
+
+      <div style="margin-top:14px;" class="badge">
+        <span>Name:</span> <b id="meName"></b>
+      </div>
+      <div style="margin-top:10px;" class="badge">
+        <span>Email:</span> <b id="meEmail"></b>
+      </div>
+
+      <div class="small" style="margin-top:14px;">
+        Ping the managers to approve you.
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

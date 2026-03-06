@@ -1,0 +1,55 @@
+<!-- index.html (LOGIN) -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sync Tracker • Login</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="centerPage">
+    <div class="card" style="max-width:460px; width:100%;">
+      <h2 id="title">Welcome back</h2>
+      <p id="subtitle">Sign in. New accounts wait for manager approval.</p>
+
+      <div style="display:flex; gap:10px; margin-top:14px;">
+        <button class="btn" id="modeLogin" type="button">Login</button>
+        <button class="btn ghost" id="modeSignup" type="button">Create account</button>
+      </div>
+
+      <form id="loginForm" style="margin-top:14px;">
+        <div id="nameWrap" class="field" style="display:none; margin-bottom:12px;">
+          <label for="name">Your name</label>
+          <select id="name" required>
+            <option value="">Select your name</option>
+          </select>
+        </div>
+
+        <div class="field" style="margin-bottom:12px;">
+          <label for="email">Email</label>
+          <input id="email" type="email" placeholder="you@company.com" required />
+        </div>
+
+        <div class="field" style="margin-bottom:12px;">
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="••••••••" required />
+        </div>
+
+        <button class="btn primary" id="submitBtn" type="submit" style="width:100%;">Login</button>
+        <div id="msg" class="msg"></div>
+      </form>
+
+      <div class="small" style="margin-top:12px;">
+        After signup, you’ll wait for manager approval.
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
