@@ -50,14 +50,14 @@ const PROJECTS = [
   Replace these placeholder names with your real fixed POCs.
 */
 const PROJECT_OWNERS = {
-  "OOI":"Harshith,Ganesh,Jamie",
+  OOI: "Harshith,Ganesh,Jamie",
   "OOI based robotic prosthetic": "Harshith",
-  "Kriya": "Harshith,Jamie,Abhi",
+  Kriya: "Harshith,Jamie,Abhi",
   "Sphere Net": "Harshith,Jamie,Vicky,Abhi",
   "Hustle Trail": "Vicky",
   "My Checkout": "Abhi,Vicky",
   "Out of the box Experience": "Vasanth",
-  "Bik": "Hrashith",
+  Bik: "Hrashith",
   "Bakery App": "Vasanth",
   "CA app": "Jamie",
 };
@@ -109,6 +109,10 @@ function escapeHtml(s) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function normalizeName(value) {
+  return String(value || "").trim().toLowerCase();
 }
 
 function isAllowedName(name) {
@@ -398,14 +402,28 @@ async function getMyProfile(uid) {
 
 async function getUserByName(name) {
   if (!name) return null;
-  const snap = await db
+
+  const cleanName = normalizeName(name);
+
+  const exactSnap = await db
     .collection("users")
     .where("name", "==", name)
     .limit(1)
     .get();
-  if (snap.empty) return null;
-  const doc = snap.docs[0];
-  return { id: doc.id, ...doc.data() };
+
+  if (!exactSnap.empty) {
+    const doc = exactSnap.docs[0];
+    return { id: doc.id, ...doc.data() };
+  }
+
+  const allSnap = await db.collection("users").get();
+  const match = allSnap.docs.find((doc) => {
+    const data = doc.data() || {};
+    return normalizeName(data.name) === cleanName;
+  });
+
+  if (!match) return null;
+  return { id: match.id, ...match.data() };
 }
 
 // ================= AUTH GUARD =================
@@ -586,21 +604,30 @@ async function initDashboardPage() {
     }
   });
 
-  await loadMyAssignedTasks(user.uid);
+  await loadMyAssignedTasks(user.uid, profile);
   await loadMyUpdates(user.uid);
 
-  async function loadMyAssignedTasks(uid) {
+  async function loadMyAssignedTasks(uid, profileData) {
     const listEl = qs("assignedTasksList");
     if (!listEl) return;
 
     listEl.innerHTML = `<div class="small">Loading assigned tasks…</div>`;
 
     try {
-      const snap = await db
-        .collection("boardTasks")
-        .where("assignedUid", "==", uid)
-        .get();
-      let docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const myName = normalizeName(profileData?.name || user.displayName || "");
+
+      const snap = await db.collection("boardTasks").get();
+
+      let docs = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .filter((task) => {
+          const taskAssignedUid = String(task.assignedUid || "").trim();
+          const taskAssignedName = normalizeName(task.assignedTo || "");
+
+          return (
+            taskAssignedUid === uid || (myName && taskAssignedName === myName)
+          );
+        });
 
       docs.sort((a, b) => {
         const rankDiff = priorityRank(b.priority) - priorityRank(a.priority);
@@ -615,13 +642,18 @@ async function initDashboardPage() {
       ).length;
       const blocked = docs.filter((t) => t.status === "Blocked").length;
 
-      if (qs("assignedCount"))
+      if (qs("assignedCount")) {
         qs("assignedCount").innerText = String(docs.length);
-      if (qs("newAssignedCount"))
+      }
+      if (qs("newAssignedCount")) {
         qs("newAssignedCount").innerText = String(newTasks);
-      if (qs("dueTodayCount")) qs("dueTodayCount").innerText = String(dueToday);
-      if (qs("assignedBlockedCount"))
+      }
+      if (qs("dueTodayCount")) {
+        qs("dueTodayCount").innerText = String(dueToday);
+      }
+      if (qs("assignedBlockedCount")) {
         qs("assignedBlockedCount").innerText = String(blocked);
+      }
 
       if (!docs.length) {
         listEl.innerHTML = `<div class="emptyState">No tasks assigned to you yet.</div>`;
@@ -639,15 +671,15 @@ async function initDashboardPage() {
                 ${task.seenByAssignee === false ? `<span class="pill ontrack">New</span>` : ``}
               </div>
 
-              <div class="taskMeta">
-                <span class="chip">${escapeHtml(task.project || "No project")}</span>
-                <span class="chip ${priorityChipClass(task.priority)}">${escapeHtml(task.priority || "Medium")}</span>
-                <span class="chip">${escapeHtml(task.status || "Backlog")}</span>
-                ${task.dueDate ? `<span class="chip">Due ${escapeHtml(task.dueDate)}</span>` : ``}
+              <div class="taskMetaRow">
+                <span class="taskChip">${escapeHtml(task.project || "No project")}</span>
+                <span class="taskChip ${priorityChipClass(task.priority)}">${escapeHtml(task.priority || "Medium")}</span>
+                <span class="taskChip">${escapeHtml(task.status || "Backlog")}</span>
+                ${task.dueDate ? `<span class="taskChip">Due ${escapeHtml(task.dueDate)}</span>` : ``}
               </div>
 
-              ${task.description ? `<div class="taskText" style="margin-top:8px;">${escapeHtml(task.description)}</div>` : ``}
-              ${task.blockers ? `<div class="taskText" style="margin-top:8px;">Blockers: ${escapeHtml(task.blockers)}</div>` : ``}
+              ${task.description ? `<div class="taskCardDesc" style="margin-top:8px;">${escapeHtml(task.description)}</div>` : ``}
+              ${task.blockers ? `<div class="taskCardDesc" style="margin-top:8px;">Blockers: ${escapeHtml(task.blockers)}</div>` : ``}
             </div>
 
             <div style="display:flex; flex-direction:column; gap:8px; min-width:220px;">
@@ -692,7 +724,7 @@ async function initDashboardPage() {
                 completedAt: el.value === "Done" ? serverTimestamp : null,
                 completedBy: el.value === "Done" ? user.uid : null,
               });
-            await loadMyAssignedTasks(uid);
+            await loadMyAssignedTasks(uid, profileData);
           } catch (err) {
             console.error(err);
           }
@@ -707,7 +739,7 @@ async function initDashboardPage() {
               status: "In Progress",
               updatedAt: serverTimestamp,
             });
-            await loadMyAssignedTasks(uid);
+            await loadMyAssignedTasks(uid, profileData);
           } catch (err) {
             console.error(err);
           }
@@ -724,7 +756,7 @@ async function initDashboardPage() {
               completedAt: serverTimestamp,
               completedBy: user.uid,
             });
-            await loadMyAssignedTasks(uid);
+            await loadMyAssignedTasks(uid, profileData);
           } catch (err) {
             console.error(err);
           }
@@ -739,7 +771,7 @@ async function initDashboardPage() {
               status: "Blocked",
               updatedAt: serverTimestamp,
             });
-            await loadMyAssignedTasks(uid);
+            await loadMyAssignedTasks(uid, profileData);
           } catch (err) {
             console.error(err);
           }
@@ -1231,7 +1263,8 @@ async function initScrumBoardPage() {
       }
 
       tasks.sort((a, b) => {
-        const priorityDiff = priorityRank(b.priority) - priorityRank(a.priority);
+        const priorityDiff =
+          priorityRank(b.priority) - priorityRank(a.priority);
         if (priorityDiff !== 0) return priorityDiff;
         return (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0);
       });
@@ -1241,7 +1274,8 @@ async function initScrumBoardPage() {
       Object.values(columns).forEach(({ count, summary, list, empty }) => {
         if (count) count.innerText = "0";
         if (summary) summary.innerText = "0";
-        if (list) list.innerHTML = `<div class="boardEmpty">${escapeHtml(empty)}</div>`;
+        if (list)
+          list.innerHTML = `<div class="boardEmpty">${escapeHtml(empty)}</div>`;
       });
 
       TASK_STATUSES.forEach((status) => {
@@ -1264,12 +1298,15 @@ async function initScrumBoardPage() {
         el.addEventListener("change", async () => {
           const taskId = el.getAttribute("data-move-task");
           try {
-            await db.collection("boardTasks").doc(taskId).update({
-              status: el.value,
-              updatedAt: serverTimestamp,
-              completedAt: el.value === "Done" ? serverTimestamp : null,
-              completedBy: el.value === "Done" ? user.uid : null,
-            });
+            await db
+              .collection("boardTasks")
+              .doc(taskId)
+              .update({
+                status: el.value,
+                updatedAt: serverTimestamp,
+                completedAt: el.value === "Done" ? serverTimestamp : null,
+                completedBy: el.value === "Done" ? user.uid : null,
+              });
             await loadBoard();
           } catch (err) {
             console.error(err);
@@ -1303,12 +1340,17 @@ async function initScrumBoardPage() {
             if (qs("taskId")) qs("taskId").value = taskId;
             if (qs("taskTitle")) qs("taskTitle").value = task.title || "";
             if (qs("taskProject")) qs("taskProject").value = task.project || "";
-            if (qs("taskAssignee")) qs("taskAssignee").value = task.assignedTo || "";
-            if (qs("taskPriority")) qs("taskPriority").value = task.priority || "Medium";
-            if (qs("taskStatus")) qs("taskStatus").value = task.status || "In Progress";
+            if (qs("taskAssignee"))
+              qs("taskAssignee").value = task.assignedTo || "";
+            if (qs("taskPriority"))
+              qs("taskPriority").value = task.priority || "Medium";
+            if (qs("taskStatus"))
+              qs("taskStatus").value = task.status || "In Progress";
             if (qs("taskDueDate")) qs("taskDueDate").value = task.dueDate || "";
-            if (qs("taskDescription")) qs("taskDescription").value = task.description || "";
-            if (qs("taskBlockers")) qs("taskBlockers").value = task.blockers || "";
+            if (qs("taskDescription"))
+              qs("taskDescription").value = task.description || "";
+            if (qs("taskBlockers"))
+              qs("taskBlockers").value = task.blockers || "";
 
             if (qs("taskSaveBtn")) qs("taskSaveBtn").innerText = "Update Task";
             if (qs("taskMsg")) {
@@ -1363,9 +1405,12 @@ async function initScrumBoardPage() {
       saveBtn.disabled = true;
 
       let assignedUid = "";
+      let assignedEmail = "";
+
       if (assignedTo) {
         const assignedUser = await getUserByName(assignedTo);
         assignedUid = assignedUser?.uid || assignedUser?.id || "";
+        assignedEmail = assignedUser?.email || "";
       }
 
       const payload = {
@@ -1373,6 +1418,7 @@ async function initScrumBoardPage() {
         project,
         assignedTo,
         assignedUid,
+        assignedEmail,
         priority: TASK_PRIORITIES.includes(priority) ? priority : "Medium",
         status: TASK_STATUSES.includes(status) ? status : "In Progress",
         dueDate,
