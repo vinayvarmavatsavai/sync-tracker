@@ -278,45 +278,40 @@ select{
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+  cursor: pointer;
   padding-right: 40px;
+  background-color: rgba(255,255,255,.06);
+  color: var(--text);
+  border: 1px solid var(--line);
   background-image:
     linear-gradient(45deg, transparent 50%, rgba(245,246,255,.85) 50%),
-    linear-gradient(135deg, rgba(245,246,255,.85) 50%, transparent 50%),
-    linear-gradient(to right, rgba(255,255,255,.06), rgba(255,255,255,.06));
+    linear-gradient(135deg, rgba(245,246,255,.85) 50%, transparent 50%);
   background-position:
     calc(100% - 18px) calc(50% - 3px),
-    calc(100% - 12px) calc(50% - 3px),
-    0 0;
-  background-size: 6px 6px, 6px 6px, 100% 100%;
+    calc(100% - 12px) calc(50% - 3px);
+  background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
 }
 
+select:focus{
+  border-color: rgba(124,92,255,.55);
+  background-color: rgba(255,255,255,.075);
+  outline: none;
+}
+
 select option{
-  background-color: #0f1220;
+  background: #111425;
   color: #f5f6ff;
 }
 
-select:focus option:checked{
-  background: linear-gradient(135deg, rgba(124,92,255,.35), rgba(255,79,216,.25));
+select option:checked{
+  background: #1b2140;
+  color: #ffffff;
 }
 
-select, select option{
-  filter: none;
-}
-select option:checked {
-  background: linear-gradient(
-    135deg,
-    rgba(124,92,255,0.45),
-    rgba(255,79,216,0.35)
-  );
+select option:hover{
+  background: #1b2140;
   color: #ffffff;
-}
-select option:hover {
-  background: rgba(124,92,255,0.25);
-  color: #ffffff;
-}
-select {
-  cursor: pointer;
 }
 
 canvas { width: 100% !important; height: 100% !important; display:block; }
@@ -368,6 +363,23 @@ canvas { width: 100% !important; height: 100% !important; display:block; }
   gap:10px;
   flex-wrap:wrap;
   align-items:center;
+}
+
+/* assigned tasks scroll */
+.assignedScroll{
+  max-height:420px;
+  overflow-y:auto;
+  padding-right:4px;
+}
+.assignedScroll::-webkit-scrollbar{
+  width:8px;
+}
+.assignedScroll::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.18);
+  border-radius:999px;
+}
+.assignedScroll::-webkit-scrollbar-track{
+  background: transparent;
 }
 
 /* ================= PROFESSIONAL SCRUM BOARD ================= */
