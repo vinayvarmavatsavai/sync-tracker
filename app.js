@@ -112,7 +112,9 @@ function escapeHtml(s) {
 }
 
 function normalizeName(value) {
-  return String(value || "").trim().toLowerCase();
+  return String(value || "")
+    .trim()
+    .toLowerCase();
 }
 
 function isAllowedName(name) {
@@ -616,18 +618,12 @@ async function initDashboardPage() {
     try {
       const myName = normalizeName(profileData?.name || user.displayName || "");
 
-      const snap = await db.collection("boardTasks").get();
+      const snap = await db
+        .collection("boardTasks")
+        .where("assignedUid", "==", uid)
+        .get();
 
-      let docs = snap.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
-        .filter((task) => {
-          const taskAssignedUid = String(task.assignedUid || "").trim();
-          const taskAssignedName = normalizeName(task.assignedTo || "");
-
-          return (
-            taskAssignedUid === uid || (myName && taskAssignedName === myName)
-          );
-        });
+      let docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
       docs.sort((a, b) => {
         const rankDiff = priorityRank(b.priority) - priorityRank(a.priority);
