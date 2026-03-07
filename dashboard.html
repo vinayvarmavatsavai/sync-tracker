@@ -11,6 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
   </head>
+
   <body>
     <div class="topbar">
       <div class="row">
@@ -23,89 +24,63 @@
         </div>
 
         <div class="nav">
-          <a
-            class="btn"
-            id="managerLink"
-            href="manager.html"
-            style="display: none"
-            >Manager</a
-          >
-          <a
-            class="btn"
-            href="scrum-board.html"
-            id="scrumLink"
-            style="display: none"
-            >Scrum Board</a
-          >
-          <button class="btn danger" id="logoutBtn" type="button">
-            Logout
-          </button>
+          <a class="btn" id="managerLink" href="manager.html" style="display:none;">Manager</a>
+          <a class="btn" href="scrum-board.html" id="scrumLink" style="display:none;">Scrum Board</a>
+          <button class="btn danger" id="logoutBtn" type="button">Logout</button>
         </div>
       </div>
     </div>
 
     <div class="container" id="dashboardPage">
+
       <!-- Assigned tasks -->
-      <div class="card" style="margin-bottom: 16px">
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            gap: 12px;
-            flex-wrap: wrap;
-          "
-        >
+      <div class="card" style="margin-bottom:16px;">
+
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
           <div>
             <h2>My assigned tasks</h2>
             <p class="small">Tasks assigned to you from the scrum board.</p>
           </div>
 
-          <div class="grid statGrid" style="width: 100%; max-width: 520px">
-            <div class="card statCard" style="min-height: 90px; padding: 14px">
+          <div class="grid statGrid" style="width:100%; max-width:520px;">
+            <div class="card statCard" style="min-height:90px; padding:14px;">
               <div class="small">Assigned</div>
-              <div class="statValue" id="assignedCount" style="font-size: 26px">
-                0
-              </div>
+              <div class="statValue" id="assignedCount" style="font-size:26px;">0</div>
             </div>
-            <div class="card statCard" style="min-height: 90px; padding: 14px">
+
+            <div class="card statCard" style="min-height:90px; padding:14px;">
               <div class="small">New</div>
-              <div
-                class="statValue"
-                id="newAssignedCount"
-                style="font-size: 26px"
-              >
-                0
-              </div>
+              <div class="statValue" id="newAssignedCount" style="font-size:26px;">0</div>
             </div>
-            <div class="card statCard" style="min-height: 90px; padding: 14px">
+
+            <div class="card statCard" style="min-height:90px; padding:14px;">
               <div class="small">Due today</div>
-              <div class="statValue" id="dueTodayCount" style="font-size: 26px">
-                0
-              </div>
+              <div class="statValue" id="dueTodayCount" style="font-size:26px;">0</div>
             </div>
-            <div class="card statCard" style="min-height: 90px; padding: 14px">
+
+            <div class="card statCard" style="min-height:90px; padding:14px;">
               <div class="small">Blocked</div>
-              <div
-                class="statValue"
-                id="assignedBlockedCount"
-                style="font-size: 26px"
-              >
-                0
-              </div>
+              <div class="statValue" id="assignedBlockedCount" style="font-size:26px;">0</div>
             </div>
           </div>
         </div>
 
-        <div id="assignedTasksList" class="grid" style="margin-top: 14px"></div>
+        <!-- SCROLLABLE TASK AREA -->
+        <div style="margin-top:14px; max-height:420px; overflow-y:auto;">
+          <div id="assignedTasksList" class="grid"></div>
+        </div>
+
       </div>
 
       <div class="grid two">
+
+        <!-- Daily Update Form -->
         <div class="card">
           <h2>Hi, <span id="helloName">Friend</span> 👋</h2>
           <p class="small">Post your update for today.</p>
 
-          <div class="grid" style="margin-top: 14px">
+          <div class="grid" style="margin-top:14px;">
+
             <div class="field">
               <label for="today">Date</label>
               <input id="today" type="date" />
@@ -138,10 +113,7 @@
 
             <div class="field">
               <label for="tasks">Tasks</label>
-              <textarea
-                id="tasks"
-                placeholder="What did you do today? (required)"
-              ></textarea>
+              <textarea id="tasks" placeholder="What did you do today? (required)"></textarea>
             </div>
 
             <div class="field">
@@ -154,21 +126,18 @@
               <textarea id="notes" placeholder="Optional notes"></textarea>
             </div>
 
-            <button class="btn primary" id="saveBtn" type="button">
-              Save update
-            </button>
+            <button class="btn primary" id="saveBtn" type="button">Save update</button>
             <div id="saveMsg" class="msg"></div>
+
           </div>
         </div>
 
+        <!-- My Updates Table -->
         <div class="card">
           <h2>My updates</h2>
           <p class="small">Your saved updates (latest first).</p>
 
-          <div
-            class="tableWrap tableScroll"
-            style="margin-top: 14px; max-height: 720px"
-          >
+          <div class="tableWrap tableScroll" style="margin-top:14px; max-height:720px;">
             <table>
               <thead>
                 <tr>
@@ -184,7 +153,9 @@
               <tbody id="rows"></tbody>
             </table>
           </div>
+
         </div>
+
       </div>
     </div>
 
