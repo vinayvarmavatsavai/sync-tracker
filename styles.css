@@ -278,9 +278,7 @@ select{
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-
   padding-right: 40px;
-
   background-image:
     linear-gradient(45deg, transparent 50%, rgba(245,246,255,.85) 50%),
     linear-gradient(135deg, rgba(245,246,255,.85) 50%, transparent 50%),
@@ -374,6 +372,10 @@ canvas { width: 100% !important; height: 100% !important; display:block; }
 
 /* ================= PROFESSIONAL SCRUM BOARD ================= */
 
+.scrumPage{
+  padding-bottom: 28px;
+}
+
 .scrumHero{
   display:flex;
   justify-content:space-between;
@@ -382,11 +384,68 @@ canvas { width: 100% !important; height: 100% !important; display:block; }
   margin-bottom:18px;
 }
 
+.scrumHeroCopy{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.scrumEyebrow{
+  display:inline-flex;
+  align-items:center;
+  width:fit-content;
+  min-height:28px;
+  padding:0 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.3px;
+  color:#e8deff;
+  background: rgba(124,92,255,.12);
+  border:1px solid rgba(124,92,255,.24);
+}
+
 .scrumTitle{
   margin:0 0 6px;
   font-size:28px;
   line-height:1.15;
   letter-spacing:.2px;
+}
+
+.scrumSubtitle{
+  max-width:720px;
+  margin:0;
+}
+
+.scrumStatsRow{
+  display:grid;
+  grid-template-columns: repeat(6, minmax(120px, 1fr));
+  gap:12px;
+  margin-bottom:18px;
+}
+
+.scrumStatCard{
+  padding:14px 16px;
+  border-radius:18px;
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow: 0 10px 24px rgba(0,0,0,.18);
+}
+
+.scrumStatLabel{
+  display:block;
+  margin-bottom:6px;
+  font-size:12px;
+  font-weight:700;
+  color:var(--muted);
+}
+
+.scrumStatCard strong{
+  display:block;
+  font-size:24px;
+  line-height:1;
+  font-weight:800;
+  color:var(--text);
 }
 
 .scrumTopGrid{
@@ -414,48 +473,69 @@ canvas { width: 100% !important; height: 100% !important; display:block; }
   gap:12px;
 }
 
+.scrumFormGrid{
+  margin-top:14px;
+}
+
+.scrumSaveBtn{
+  min-width:160px;
+}
+
 .scrumBoardShell{
   margin-top:10px;
-}
-
-.scrumBoardHint{
-  display:flex;
-  gap:8px;
-  align-items:center;
-  flex-wrap:wrap;
-  margin-top:18px;
-}
-
-/* board wrapper */
-.boardWrap{
-  display:flex;
-  gap:16px;
   overflow-x:auto;
-  align-items:flex-start;
-  padding:6px 2px 14px;
-  scroll-behavior:smooth;
+  overflow-y:hidden;
+  padding-bottom:8px;
 }
 
-.boardWrap::-webkit-scrollbar{
+.scrumBoardShell::-webkit-scrollbar{
   height:10px;
 }
 
-.boardWrap::-webkit-scrollbar-thumb{
+.scrumBoardShell::-webkit-scrollbar-thumb{
   background: rgba(255,255,255,.16);
   border-radius:999px;
 }
 
-.boardWrap::-webkit-scrollbar-track{
+.scrumBoardShell::-webkit-scrollbar-track{
   background: transparent;
+}
+
+.scrumBoardHint{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:18px;
+}
+
+.hintPill{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:42px;
+  padding:0 14px;
+  border-radius:14px;
+  background: rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  color: rgba(255,255,255,.82);
+  font-size:13px;
+  font-weight:600;
+}
+
+.hintDot{
+  width:9px;
+  height:9px;
+  border-radius:999px;
+  background: var(--accent1);
+  flex:0 0 9px;
 }
 
 /* board wrapper */
 .boardWrap{
   display:flex;
   gap:16px;
-  overflow-x:auto;
-  overflow-y:hidden;
   align-items:flex-start;
+  min-width:max-content;
   padding:6px 2px 14px;
   scroll-behavior:smooth;
 }
@@ -477,15 +557,16 @@ canvas { width: 100% !important; height: 100% !important; display:block; }
 .boardColumn{
   flex: 0 0 320px;
   width:320px;
+  height:76vh;
+  min-height:620px;
+  max-height:76vh;
   display:flex;
   flex-direction:column;
-  gap:12px;
-  min-height:240px;
-  max-height:78vh;
+  border-radius:20px;
   background: rgba(255,255,255,.03);
   border:1px solid rgba(255,255,255,.07);
-  border-radius:20px;
-  padding:12px;
+  box-shadow: 0 14px 36px rgba(0,0,0,.22);
+  overflow:hidden;
 }
 
 .boardColumnHead{
@@ -493,12 +574,13 @@ canvas { width: 100% !important; height: 100% !important; display:block; }
   justify-content:space-between;
   align-items:center;
   gap:10px;
-  padding:4px 2px 10px;
+  padding:14px 14px 12px;
   border-bottom:1px solid rgba(255,255,255,.08);
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #111322;
+  background: rgba(17,19,34,.96);
+  backdrop-filter: blur(8px);
 }
 
 .boardColumnHead h3{
@@ -509,8 +591,9 @@ canvas { width: 100% !important; height: 100% !important; display:block; }
 }
 
 .boardCount{
-  min-width:28px;
-  height:28px;
+  min-width:32px;
+  height:32px;
+  padding:0 10px;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -550,9 +633,9 @@ canvas { width: 100% !important; height: 100% !important; display:block; }
   gap:12px;
   overflow-y:auto;
   overflow-x:hidden;
-  padding:8px 4px 8px 2px;
-  min-height:160px;
-  max-height:calc(78vh - 56px);
+  padding:12px;
+  flex:1;
+  min-height:0;
   scroll-behavior:smooth;
 }
 
@@ -576,7 +659,7 @@ canvas { width: 100% !important; height: 100% !important; display:block; }
   border-radius:16px;
   background: #161829;
   border:1px solid rgba(255,255,255,.08);
-  padding:14px 14px 12px;
+  padding:12px;
   box-shadow: 0 8px 20px rgba(0,0,0,.20);
   transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease;
 }
@@ -599,23 +682,38 @@ canvas { width: 100% !important; height: 100% !important; display:block; }
 }
 
 .taskCardTitle{
-  margin:2px 0 10px;
+  margin:2px 0 8px;
   font-size:14px;
   font-weight:700;
-  line-height:1.45;
+  line-height:1.4;
   color:#f7f8ff;
 }
 
-.taskMeta{
+.taskCardDesc{
+  margin:0 0 10px;
+  font-size:12px;
+  line-height:1.55;
+  color:#cfd3f7;
+  opacity:.92;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  min-height:38px;
+}
+
+.taskMetaRow{
   display:flex;
   flex-wrap:wrap;
   gap:6px;
   margin:0 0 10px;
 }
 
-.chip{
+.taskChip{
   display:inline-flex;
   align-items:center;
+  justify-content:center;
+  min-height:26px;
   padding:4px 8px;
   border-radius:999px;
   border:1px solid rgba(255,255,255,.08);
@@ -625,12 +723,70 @@ canvas { width: 100% !important; height: 100% !important; display:block; }
   font-weight:600;
 }
 
-.taskText{
+.taskChip.low{
+  background: rgba(46,229,157,.10);
+  border-color: rgba(46,229,157,.20);
+  color:#cffff0;
+}
+
+.taskChip.medium{
+  background: rgba(78,161,255,.12);
+  border-color: rgba(78,161,255,.24);
+  color:#d8ebff;
+}
+
+.taskChip.high{
+  background: rgba(255,91,110,.12);
+  border-color: rgba(255,91,110,.24);
+  color:#ffd2d8;
+}
+
+.taskFooter{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:2px;
+}
+
+.taskAssignee{
+  max-width:150px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
   font-size:12px;
-  line-height:1.55;
-  color:#cfd3f7;
-  opacity:.92;
-  white-space:pre-wrap;
+  font-weight:700;
+  color:rgba(255,255,255,.86);
+}
+
+.taskDue{
+  font-size:11px;
+  font-weight:700;
+  color:rgba(255,255,255,.64);
+}
+
+.taskActions{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+
+.taskMiniBtn{
+  flex:1;
+  height:34px;
+  border:none;
+  border-radius:12px;
+  background: rgba(255,255,255,.08);
+  color:#ffffff;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  transition: background .2s ease, transform .2s ease;
+}
+
+.taskMiniBtn:hover{
+  background: rgba(255,255,255,.14);
+  transform: translateY(-1px);
 }
 
 .taskControls{
@@ -662,6 +818,7 @@ canvas { width: 100% !important; height: 100% !important; display:block; }
   border-radius:12px;
 }
 
+.boardEmpty,
 .emptyState{
   padding:16px;
   border-radius:14px;
@@ -776,4 +933,284 @@ canvas { width: 100% !important; height: 100% !important; display:block; }
   gap:8px;
   flex-wrap:wrap;
   margin:10px 0;
+}
+
+/* ================= PROJECT STATUS DASHBOARD ================= */
+
+.projectStatusHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.projectStatusFilter{
+  min-width:260px;
+}
+
+.projectStatusStats .card{
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025));
+}
+
+.projectStatusTableWrap table{
+  min-width: 1380px;
+}
+
+.stagePill{
+  display:inline-flex;
+  align-items:center;
+  padding:7px 12px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  font-size:12px;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.stagePill.notstarted{
+  background: rgba(255,255,255,.06);
+  color:#e4e7ff;
+}
+
+.stagePill.planning{
+  background: rgba(124,92,255,.14);
+  border-color: rgba(124,92,255,.24);
+  color:#ddd3ff;
+}
+
+.stagePill.development{
+  background: rgba(78,161,255,.14);
+  border-color: rgba(78,161,255,.26);
+  color:#d8ebff;
+}
+
+.stagePill.review{
+  background: rgba(255,184,77,.14);
+  border-color: rgba(255,184,77,.26);
+  color:#ffe9bf;
+}
+
+.stagePill.blocked{
+  background: rgba(255,91,110,.14);
+  border-color: rgba(255,91,110,.26);
+  color:#ffd2d8;
+}
+
+.stagePill.completed{
+  background: rgba(46,229,157,.12);
+  border-color: rgba(46,229,157,.24);
+  color:#cffff0;
+}
+
+.progressCell{
+  min-width:140px;
+}
+
+.progressMeta{
+  margin-top:6px;
+  font-size:12px;
+  color:var(--muted);
+}
+
+.metricStack{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.metricMain{
+  font-size:14px;
+  font-weight:800;
+  color:var(--text);
+}
+
+.metricSub{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.nextStepText{
+  min-width:220px;
+  max-width:320px;
+  white-space:normal;
+  line-height:1.5;
+  color:#e9ebff;
+}
+
+.milestoneCell{
+  min-width:200px;
+  max-width:260px;
+  white-space:normal;
+  line-height:1.45;
+}
+
+.targetCell{
+  min-width:140px;
+}
+
+.statusInsightList{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:14px;
+}
+
+.insightItem{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  padding:14px 16px;
+  border-radius:18px;
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.035);
+}
+
+.insightLeft{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.insightTitle{
+  font-size:14px;
+  font-weight:800;
+  color:var(--text);
+}
+
+.insightNote{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.insightValue{
+  min-width:42px;
+  height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  background: rgba(255,255,255,.08);
+  border:1px solid var(--line);
+  font-size:14px;
+  font-weight:800;
+}
+
+.statusGood{
+  color: var(--ok);
+}
+
+.statusWarn{
+  color: var(--warn);
+}
+
+.statusBad{
+  color: var(--bad);
+}
+
+.projectStatusTableWrap table{
+  min-width: 1900px;
+}
+
+.projectRow{
+  cursor:pointer;
+  transition: background .14s ease;
+}
+
+.projectRow:hover td{
+  background: rgba(124,92,255,.06);
+}
+
+.projectDanger td{
+  background: rgba(255,91,110,.06);
+}
+
+.healthCell{
+  min-width: 150px;
+}
+
+.healthReason{
+  margin-top:6px;
+  font-size:11px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.ownerCell,
+.teamCell,
+.activityCell,
+.targetCell{
+  min-width: 100px;
+}
+
+.teamBadge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:34px;
+  height:34px;
+  padding:0 10px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.06);
+  font-size:12px;
+  font-weight:800;
+}
+
+.activityBad{
+  color: var(--bad);
+}
+
+.activityWarn{
+  color: var(--warn);
+}
+
+.activityGood{
+  color: var(--ok);
+}
+
+.actionButtons{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  min-width:150px;
+}
+
+.actionBtnMini{
+  padding:8px 10px;
+  font-size:12px;
+  border-radius:12px;
+}
+
+/* responsive */
+@media (max-width: 1200px){
+  .scrumStatsRow{
+    grid-template-columns: repeat(3, minmax(120px, 1fr));
+  }
+}
+
+@media (max-width: 768px){
+  .scrumStatsRow{
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
+  .boardColumn{
+    flex: 0 0 280px;
+    width:280px;
+    height:70vh;
+    min-height:520px;
+    max-height:70vh;
+  }
+
+  .scrumTitle{
+    font-size:24px;
+  }
+}
+
+@media (max-width: 520px){
+  .scrumStatsRow{
+    grid-template-columns: 1fr;
+  }
 }

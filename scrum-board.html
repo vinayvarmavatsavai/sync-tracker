@@ -33,13 +33,41 @@
       </div>
     </div>
 
-    <div class="container" id="scrumPage">
+    <div class="container scrumPage" id="scrumPage">
       <div class="scrumHero">
-        <div>
+        <div class="scrumHeroCopy">
+          <span class="scrumEyebrow">Sprint Workspace</span>
           <h2 class="scrumTitle">Engineering Scrum Board</h2>
-          <p class="small">
+          <p class="small scrumSubtitle">
             Plan work, assign ownership, and track progress across each delivery stage.
           </p>
+        </div>
+      </div>
+
+      <div class="scrumStatsRow">
+        <div class="scrumStatCard">
+          <span class="scrumStatLabel">Backlog</span>
+          <strong id="summaryBacklog">0</strong>
+        </div>
+        <div class="scrumStatCard">
+          <span class="scrumStatLabel">To Do</span>
+          <strong id="summaryTodo">0</strong>
+        </div>
+        <div class="scrumStatCard">
+          <span class="scrumStatLabel">In Progress</span>
+          <strong id="summaryProgress">0</strong>
+        </div>
+        <div class="scrumStatCard">
+          <span class="scrumStatLabel">Review</span>
+          <strong id="summaryReview">0</strong>
+        </div>
+        <div class="scrumStatCard">
+          <span class="scrumStatLabel">Done</span>
+          <strong id="summaryDone">0</strong>
+        </div>
+        <div class="scrumStatCard">
+          <span class="scrumStatLabel">Blocked</span>
+          <strong id="summaryBlocked">0</strong>
         </div>
       </div>
 
@@ -54,7 +82,7 @@
 
           <input type="hidden" id="taskId" />
 
-          <div class="grid" style="margin-top: 14px">
+          <div class="grid scrumFormGrid">
             <div class="field">
               <label for="taskTitle">Task Title</label>
               <input
@@ -125,7 +153,7 @@
             </div>
 
             <div class="actionRow">
-              <button class="btn primary" id="taskSaveBtn" type="button">
+              <button class="btn primary scrumSaveBtn" id="taskSaveBtn" type="button">
                 Save Task
               </button>
             </div>
@@ -142,7 +170,7 @@
             </div>
           </div>
 
-          <div class="grid" style="margin-top: 14px">
+          <div class="grid scrumFormGrid">
             <div class="field">
               <label for="filterProject">Project</label>
               <select id="filterProject">
@@ -169,8 +197,14 @@
           </div>
 
           <div class="scrumBoardHint">
-            <span class="chip">Tip</span>
-            <span class="small">Move tasks between lanes using the status dropdown on each card.</span>
+            <div class="hintPill">
+              <span class="hintDot"></span>
+              Scroll inside each lane when task count grows
+            </div>
+            <div class="hintPill">
+              <span class="hintDot"></span>
+              Use filters to reduce clutter
+            </div>
           </div>
         </div>
       </div>
@@ -185,7 +219,9 @@
               </div>
               <span id="countBacklog" class="boardCount">0</span>
             </div>
-            <div id="colBacklog" class="boardList"></div>
+            <div id="colBacklog" class="boardList">
+              <div class="boardEmpty">No backlog tasks yet.</div>
+            </div>
           </div>
 
           <div class="boardColumn todo">
@@ -196,7 +232,9 @@
               </div>
               <span id="countTodo" class="boardCount">0</span>
             </div>
-            <div id="colTodo" class="boardList"></div>
+            <div id="colTodo" class="boardList">
+              <div class="boardEmpty">No to-do tasks yet.</div>
+            </div>
           </div>
 
           <div class="boardColumn progress">
@@ -207,7 +245,9 @@
               </div>
               <span id="countProgress" class="boardCount">0</span>
             </div>
-            <div id="colProgress" class="boardList"></div>
+            <div id="colProgress" class="boardList">
+              <div class="boardEmpty">No tasks in progress yet.</div>
+            </div>
           </div>
 
           <div class="boardColumn review">
@@ -218,7 +258,9 @@
               </div>
               <span id="countReview" class="boardCount">0</span>
             </div>
-            <div id="colReview" class="boardList"></div>
+            <div id="colReview" class="boardList">
+              <div class="boardEmpty">No review tasks yet.</div>
+            </div>
           </div>
 
           <div class="boardColumn done">
@@ -229,7 +271,9 @@
               </div>
               <span id="countDone" class="boardCount">0</span>
             </div>
-            <div id="colDone" class="boardList"></div>
+            <div id="colDone" class="boardList">
+              <div class="boardEmpty">No completed tasks yet.</div>
+            </div>
           </div>
 
           <div class="boardColumn blocked">
@@ -240,7 +284,9 @@
               </div>
               <span id="countBlocked" class="boardCount">0</span>
             </div>
-            <div id="colBlocked" class="boardList"></div>
+            <div id="colBlocked" class="boardList">
+              <div class="boardEmpty">No blocked tasks yet.</div>
+            </div>
           </div>
         </div>
       </div>

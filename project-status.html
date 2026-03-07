@@ -7,9 +7,10 @@
   <title>Sync Tracker • Project Status</title>
   <link rel="stylesheet" href="styles.css" />
 
-  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+  <script defer src="app.js"></script>
 </head>
 <body>
   <div class="topbar">
@@ -32,15 +33,17 @@
     </div>
   </div>
 
-  <div class="container" id="projectStatusPage">
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+  <main class="container" id="projectStatusPage">
+    <section class="card">
+      <div class="projectStatusHead">
         <div>
           <h2>Project status overview</h2>
-          <p class="small">Track project health, completion, blockers, and overdue work.</p>
+          <p class="small">
+            View current stage, health, progress, pending work, next steps, ownership, activity, and milestone targets across all projects.
+          </p>
         </div>
 
-        <div class="field" style="min-width:260px;">
+        <div class="field projectStatusFilter">
           <label for="statusProjectFilter">Filter by project</label>
           <select id="statusProjectFilter">
             <option value="__ALL__">All projects</option>
@@ -48,50 +51,83 @@
         </div>
       </div>
 
-      <div class="tableWrap" style="margin-top:14px;">
+      <div class="grid statGrid projectStatusStats" style="margin-top:16px;">
+        <div class="card statCard">
+          <div class="small">Total projects</div>
+          <div class="statValue" id="projectsTotal">0</div>
+        </div>
+
+        <div class="card statCard">
+          <div class="small">Active projects</div>
+          <div class="statValue" id="projectsActive">0</div>
+        </div>
+
+        <div class="card statCard">
+          <div class="small">Projects at risk</div>
+          <div class="statValue" id="projectsAtRisk">0</div>
+        </div>
+
+        <div class="card statCard">
+          <div class="small">Completed projects</div>
+          <div class="statValue" id="projectsCompleted">0</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid two" style="margin-top:16px;">
+      <div class="card">
+        <h2>Stage breakdown</h2>
+        <p class="small">How projects are distributed by current stage.</p>
+
+        <div class="statusInsightList" id="stageBreakdownList">
+          <div class="emptyState">Loading stage summary…</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Attention needed</h2>
+        <p class="small">Quick signals for projects that need follow-up.</p>
+
+        <div class="statusInsightList" id="attentionList">
+          <div class="emptyState">Loading attention summary…</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:16px;">
+      <h2>Detailed project dashboard</h2>
+      <p class="small">
+        Click a row to open that project in the scrum board.
+      </p>
+
+      <div class="tableWrap projectStatusTableWrap" style="margin-top:14px;">
         <table>
           <thead>
             <tr>
               <th>Project</th>
+              <th>Owner</th>
+              <th>Team</th>
+              <th>Current Stage</th>
               <th>Health</th>
-              <th>Total Tasks</th>
-              <th>Done</th>
-              <th>In Progress</th>
+              <th>Progress</th>
+              <th>Pending Work</th>
               <th>Blocked</th>
-              <th>High Priority</th>
               <th>Overdue</th>
-              <th>Completion</th>
+              <th>Last Activity</th>
+              <th>Next Step</th>
               <th>Latest Milestone</th>
+              <th>Upcoming Target</th>
+              <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="projectStatusRows"></tbody>
+          <tbody id="projectStatusRows">
+            <tr>
+              <td colspan="14" class="small">Loading project data…</td>
+            </tr>
+          </tbody>
         </table>
       </div>
-    </div>
-
-    <div class="grid statGrid" style="margin-top:16px;">
-      <div class="card statCard">
-        <div class="small">Projects on track</div>
-        <div class="statValue" id="projectsOnTrack">0</div>
-      </div>
-
-      <div class="card statCard">
-        <div class="small">Projects at risk</div>
-        <div class="statValue" id="projectsAtRisk">0</div>
-      </div>
-
-      <div class="card statCard">
-        <div class="small">Delayed projects</div>
-        <div class="statValue" id="projectsDelayed">0</div>
-      </div>
-
-      <div class="card statCard">
-        <div class="small">Completed projects</div>
-        <div class="statValue" id="projectsCompleted">0</div>
-      </div>
-    </div>
-  </div>
-
-  <script src="app.js"></script>
+    </section>
+  </main>
 </body>
 </html>
