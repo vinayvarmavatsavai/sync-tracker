@@ -6,6 +6,7 @@ const MANAGER_EMAILS = [
   "harshithgosula@gmail.com",
   "vinnu24.vinay@gmail.com",
   "manojvasanthram@gmail.com",
+  "ramavathabhinaik4@gmail.com",
 ].map((e) => e.toLowerCase());
 
 const firebaseConfig = {
@@ -23,7 +24,6 @@ const FRIEND_NAMES = [
   "Harshith",
   "Jamie",
   "Abhi",
-  "Abhishek",
   "Vasanth",
   "Maharaja",
   "Ganesh",
@@ -31,6 +31,7 @@ const FRIEND_NAMES = [
   "Suriya",
   "Rahul",
   "Sreejith",
+  "test",
 ];
 
 const PROJECTS = [
