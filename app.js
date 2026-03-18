@@ -31,6 +31,7 @@ const FRIEND_NAMES = [
   "Suriya",
   "Rahul",
   "Sreejith",
+  "Divya",
   "test",
 ];
 
@@ -830,6 +831,14 @@ async function initManagerPage() {
   });
 
   fillSelectOptions(qs("projectFilter"), PROJECTS, { keepFirstOption: true });
+  fillSelectOptions(qs("personFilter"), FRIEND_NAMES, { keepFirstOption: true });
+
+  fillSelectOptions(qs("blockedProjectFilter"), PROJECTS, {
+    keepFirstOption: true,
+  });
+  fillSelectOptions(qs("blockedPersonFilter"), FRIEND_NAMES, {
+    keepFirstOption: true,
+  });
 
   let statusChart = null;
   let trendChart = null;
@@ -839,6 +848,18 @@ async function initManagerPage() {
     try {
       ch && ch.destroy();
     } catch (_) {}
+  }
+
+  function getLastNDates(n) {
+    const days = [];
+    for (let i = n - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      days.push(`${d.getFullYear()}-${mm}-${dd}`);
+    }
+    return days;
   }
 
   async function loadPendingApprovals() {
@@ -901,35 +922,53 @@ async function initManagerPage() {
     }
   }
 
-  async function loadTodayAndCharts({ skipCharts = false } = {}) {
+  async function loadUpdatesTable() {
+    const range = (qs("updatesRangeFilter")?.value || "TODAY").trim();
     const filterProject = (qs("projectFilter")?.value || "__ALL__").trim();
-    const today = todayISO();
+    const filterPerson = (qs("personFilter")?.value || "__ALL__").trim();
 
-    const snap = await db
-      .collection("updates")
-      .where("date", "==", today)
-      .get();
-    let updates = snap.docs.map((d) => d.data());
+    let updates = [];
 
-    if (filterProject !== "__ALL__") {
-      updates = updates.filter(
-        (u) => (u.project || "").trim() === filterProject,
-      );
-    }
+    try {
+      const snap = await db.collection("updates").get();
+      updates = snap.docs.map((d) => d.data());
 
-    if (qs("todayRows")) {
+      const today = todayISO();
+      const last7Days = getLastNDates(7);
+      const firstDay = last7Days[0];
+
+      if (range === "TODAY") {
+        updates = updates.filter((u) => (u.date || "") === today);
+      } else if (range === "LAST_7_DAYS") {
+        updates = updates.filter((u) => (u.date || "") >= firstDay);
+      }
+
+      if (filterProject !== "__ALL__") {
+        updates = updates.filter(
+          (u) => (u.project || "").trim() === filterProject,
+        );
+      }
+
+      if (filterPerson !== "__ALL__") {
+        updates = updates.filter((u) => (u.name || "").trim() === filterPerson);
+      }
+
+      updates.sort((a, b) => {
+        if ((b.date || "") !== (a.date || "")) {
+          return String(b.date || "").localeCompare(String(a.date || ""));
+        }
+        return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+      });
+
       if (!updates.length) {
         qs("todayRows").innerHTML =
-          `<tr><td colspan="6" class="small">No updates for today.</td></tr>`;
+          `<tr><td colspan="7" class="small">No updates found for selected filters.</td></tr>`;
       } else {
-        updates.sort(
-          (a, b) => priorityRank(b.priority) - priorityRank(a.priority),
-        );
-
         qs("todayRows").innerHTML = updates
           .map(
             (u) => `
           <tr>
+            <td>${escapeHtml(u.date || "—")}</td>
             <td>${escapeHtml(u.name)}</td>
             <td>${escapeHtml(u.project)}</td>
             <td>${escapeHtml(u.status)}</td>
@@ -941,28 +980,98 @@ async function initManagerPage() {
           )
           .join("");
       }
+    } catch (err) {
+      console.error(err);
+      qs("todayRows").innerHTML =
+        `<tr><td colspan="7" class="small">Unable to load updates.</td></tr>`;
     }
+  }
 
-    const blocked = updates.filter((u) => (u.status || "") === "Blocked");
-    if (qs("blockedRows")) {
+  async function loadBlockedTable() {
+    const range = (qs("blockedRangeFilter")?.value || "TODAY").trim();
+    const filterProject = (qs("blockedProjectFilter")?.value || "__ALL__").trim();
+    const filterPerson = (qs("blockedPersonFilter")?.value || "__ALL__").trim();
+
+    try {
+      const snap = await db.collection("updates").get();
+      let blocked = snap.docs.map((d) => d.data());
+
+      const today = todayISO();
+      const last7Days = getLastNDates(7);
+      const firstDay = last7Days[0];
+
+      blocked = blocked.filter((u) => (u.status || "") === "Blocked");
+
+      if (range === "TODAY") {
+        blocked = blocked.filter((u) => (u.date || "") === today);
+      } else if (range === "LAST_7_DAYS") {
+        blocked = blocked.filter((u) => (u.date || "") >= firstDay);
+      }
+
+      if (filterProject !== "__ALL__") {
+        blocked = blocked.filter(
+          (u) => (u.project || "").trim() === filterProject,
+        );
+      }
+
+      if (filterPerson !== "__ALL__") {
+        blocked = blocked.filter((u) => (u.name || "").trim() === filterPerson);
+      }
+
+      blocked.sort((a, b) => {
+        if ((b.date || "") !== (a.date || "")) {
+          return String(b.date || "").localeCompare(String(a.date || ""));
+        }
+        return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+      });
+
       if (!blocked.length) {
         qs("blockedRows").innerHTML =
-          `<tr><td colspan="5" class="small">No blockers today 🎉</td></tr>`;
-      } else {
-        qs("blockedRows").innerHTML = blocked
-          .map(
-            (u) => `
-          <tr>
-            <td>${escapeHtml(u.name)}</td>
-            <td>${escapeHtml(u.project)}</td>
-            <td>${escapeHtml(u.tasks)}</td>
-            <td>${escapeHtml(u.blockers)}</td>
-            <td>${escapeHtml(u.notes)}</td>
-          </tr>
-        `,
-          )
-          .join("");
+          `<tr><td colspan="6" class="small">No blocked updates found for selected filters.</td></tr>`;
+        return;
       }
+
+      qs("blockedRows").innerHTML = blocked
+        .map(
+          (u) => `
+        <tr>
+          <td>${escapeHtml(u.date || "—")}</td>
+          <td>${escapeHtml(u.name)}</td>
+          <td>${escapeHtml(u.project)}</td>
+          <td>${escapeHtml(u.tasks)}</td>
+          <td>${escapeHtml(u.blockers)}</td>
+          <td>${escapeHtml(u.notes)}</td>
+        </tr>
+      `,
+        )
+        .join("");
+    } catch (err) {
+      console.error(err);
+      qs("blockedRows").innerHTML =
+        `<tr><td colspan="6" class="small">Unable to load blocked updates.</td></tr>`;
+    }
+  }
+
+  async function loadTodayCharts() {
+    const filterProject = (qs("projectFilter")?.value || "__ALL__").trim();
+    const filterPerson = (qs("personFilter")?.value || "__ALL__").trim();
+    const today = todayISO();
+
+    const snap = await db
+      .collection("updates")
+      .where("date", "==", today)
+      .get();
+
+    let updates = snap.docs.map((d) => d.data());
+
+    if (filterProject !== "__ALL__") {
+      updates = updates.filter(
+        (u) => (u.project || "").trim() === filterProject,
+      );
+    }
+
+    if (filterPerson !== "__ALL__") {
+      updates = updates.filter((u) => (u.name || "").trim() === filterPerson);
     }
 
     if (qs("statTotalUpdates"))
@@ -972,13 +1081,14 @@ async function initManagerPage() {
         updates.filter((u) => u.status === "Done").length,
       );
     if (qs("statBlockedCount"))
-      qs("statBlockedCount").innerText = String(blocked.length);
+      qs("statBlockedCount").innerText = String(
+        updates.filter((u) => (u.status || "") === "Blocked").length,
+      );
     if (qs("statHighPriorityCount"))
       qs("statHighPriorityCount").innerText = String(
         updates.filter((u) => u.priority === "High").length,
       );
 
-    if (skipCharts) return;
     if (typeof window.Chart === "undefined") return;
 
     const statusCounts = { Done: 0, "In Progress": 0, Blocked: 0 };
@@ -1004,23 +1114,21 @@ async function initManagerPage() {
       });
     }
 
-    const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      const dd = String(d.getDate()).padStart(2, "0");
-      days.push(`${d.getFullYear()}-${mm}-${dd}`);
-    }
+    const days = getLastNDates(7);
 
     const trendSnap = await db
       .collection("updates")
       .where("date", ">=", days[0])
       .get();
+
     let last = trendSnap.docs.map((d) => d.data());
 
     if (filterProject !== "__ALL__") {
       last = last.filter((u) => (u.project || "").trim() === filterProject);
+    }
+
+    if (filterPerson !== "__ALL__") {
+      last = last.filter((u) => (u.name || "").trim() === filterPerson);
     }
 
     const dayCounts = {};
@@ -1056,6 +1164,7 @@ async function initManagerPage() {
     const top = Object.entries(projectCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 8);
+
     const topLabels = top.map((x) => x[0]);
     const topValues = top.map((x) => x[1]);
 
@@ -1075,15 +1184,41 @@ async function initManagerPage() {
     }
   }
 
-  await loadPendingApprovals();
+  async function refreshManagerView() {
+    await loadUpdatesTable();
+    await loadBlockedTable();
 
-  const ok = await waitForChartJs();
-  await loadTodayAndCharts({ skipCharts: !ok });
+    const ok = await waitForChartJs();
+    if (ok) {
+      await loadTodayCharts();
+    }
+  }
+
+  await loadPendingApprovals();
+  await refreshManagerView();
+
+  qs("updatesRangeFilter")?.addEventListener("change", () => {
+    refreshManagerView().catch(console.error);
+  });
 
   qs("projectFilter")?.addEventListener("change", () => {
-    loadTodayAndCharts({
-      skipCharts: typeof window.Chart === "undefined",
-    }).catch(console.error);
+    refreshManagerView().catch(console.error);
+  });
+
+  qs("personFilter")?.addEventListener("change", () => {
+    refreshManagerView().catch(console.error);
+  });
+
+  qs("blockedRangeFilter")?.addEventListener("change", () => {
+    loadBlockedTable().catch(console.error);
+  });
+
+  qs("blockedProjectFilter")?.addEventListener("change", () => {
+    loadBlockedTable().catch(console.error);
+  });
+
+  qs("blockedPersonFilter")?.addEventListener("change", () => {
+    loadBlockedTable().catch(console.error);
   });
 }
 

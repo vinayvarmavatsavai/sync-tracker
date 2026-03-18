@@ -188,7 +188,7 @@ label{
 
 input, select, textarea{
   width: 100%;
-  background: rgba(255,255,255,.06);
+  background: rgba(255,255,255,.075);
   border: 1px solid var(--line);
   color: var(--text);
   padding: 12px 12px;
@@ -317,17 +317,31 @@ select option:hover{
 canvas { width: 100% !important; height: 100% !important; display:block; }
 
 .tableScroll{
-  max-height: 360px;
+  max-height: 260px; /* header + around 5 rows */
   overflow-y: auto;
   overflow-x: auto;
+  scroll-behavior: smooth;
 }
+
 .tableScroll thead th{
   position: sticky;
   top: 0;
   z-index: 3;
+  background: rgba(10,10,22,.92);
 }
-.tableScroll{
-  scroll-behavior: smooth;
+
+.tableScroll::-webkit-scrollbar{
+  width: 8px;
+  height: 8px;
+}
+
+.tableScroll::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.18);
+  border-radius: 999px;
+}
+
+.tableScroll::-webkit-scrollbar-track{
+  background: transparent;
 }
 
 /* stat cards */
