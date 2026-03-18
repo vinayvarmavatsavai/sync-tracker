@@ -34,43 +34,49 @@
     <div class="container" id="dashboardPage">
 
       <!-- Assigned tasks -->
-      <div class="card" style="margin-bottom:16px;">
+<div class="card" style="margin-bottom:16px;">
 
-        <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
-          <div>
-            <h2>My assigned tasks</h2>
-            <p class="small">Tasks assigned to you from the scrum board.</p>
-          </div>
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+    <div>
+      <h2>My assigned tasks</h2>
+      <p class="small">Tasks assigned to you from the scrum board.</p>
+    </div>
 
-          <div class="grid statGrid" style="width:100%; max-width:520px;">
-            <div class="card statCard" style="min-height:90px; padding:14px;">
-              <div class="small">Assigned</div>
-              <div class="statValue" id="assignedCount" style="font-size:26px;">0</div>
-            </div>
-
-            <div class="card statCard" style="min-height:90px; padding:14px;">
-              <div class="small">New</div>
-              <div class="statValue" id="newAssignedCount" style="font-size:26px;">0</div>
-            </div>
-
-            <div class="card statCard" style="min-height:90px; padding:14px;">
-              <div class="small">Due today</div>
-              <div class="statValue" id="dueTodayCount" style="font-size:26px;">0</div>
-            </div>
-
-            <div class="card statCard" style="min-height:90px; padding:14px;">
-              <div class="small">Blocked</div>
-              <div class="statValue" id="assignedBlockedCount" style="font-size:26px;">0</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SCROLLABLE TASK AREA -->
-        <div style="margin-top:14px; max-height:420px; overflow-y:auto;">
-          <div id="assignedTasksList" class="grid"></div>
-        </div>
-
+    <div class="grid statGrid" style="width:100%; max-width:520px;">
+      <div class="card statCard" style="min-height:90px; padding:14px;">
+        <div class="small">Active</div>
+        <div class="statValue" id="assignedCount">0</div>
       </div>
+
+      <div class="card statCard" style="min-height:90px; padding:14px;">
+        <div class="small">New</div>
+        <div class="statValue" id="newAssignedCount">0</div>
+      </div>
+
+      <div class="card statCard" style="min-height:90px; padding:14px;">
+        <div class="small">Due today</div>
+        <div class="statValue" id="dueTodayCount">0</div>
+      </div>
+
+      <div class="card statCard" style="min-height:90px; padding:14px;">
+        <div class="small">Blocked</div>
+        <div class="statValue" id="assignedBlockedCount">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div style="margin-top:16px; display:flex; gap:8px;">
+    <button class="btn primary" id="tabActive">Active Tasks</button>
+    <button class="btn ghost" id="tabCompleted">Completed Tasks</button>
+  </div>
+
+  <!-- TAB CONTENT -->
+  <div style="margin-top:14px; max-height:420px; overflow-y:auto; padding-right:4px;">
+  <div id="assignedTasksList"></div>
+  <div id="completedTasksList" style="display:none;"></div>
+</div>
+</div>
 
       <div class="grid two">
 

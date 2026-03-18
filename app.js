@@ -608,40 +608,147 @@ async function initDashboardPage() {
     }
   });
 
-  await loadMyAssignedTasks(user.uid, profile);
-  await loadMyUpdates(user.uid);
+  async function updateTaskStatus(taskId, statusValue, uid, profileData) {
+    try {
+      await db
+        .collection("boardTasks")
+        .doc(taskId)
+        .update({
+          status: statusValue,
+          updatedAt: serverTimestamp,
+          completedAt: statusValue === "Done" ? serverTimestamp : null,
+          completedBy: statusValue === "Done" ? user.uid : null,
+        });
+
+      await loadMyAssignedTasks(uid, profileData);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function renderAssignedTaskCard(task) {
+    return `
+      <div class="card" style="padding:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:220px;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+              <div style="font-size:16px; font-weight:800;">${escapeHtml(task.title || "Untitled Task")}</div>
+              ${task.seenByAssignee === false ? `<span class="pill ontrack">New</span>` : ``}
+            </div>
+
+            <div class="taskMetaRow">
+              <span class="taskChip">${escapeHtml(task.project || "No project")}</span>
+              <span class="taskChip ${priorityChipClass(task.priority)}">${escapeHtml(task.priority || "Medium")}</span>
+              <span class="taskChip">${escapeHtml(task.status || "Backlog")}</span>
+              ${task.dueDate ? `<span class="taskChip">Due ${escapeHtml(task.dueDate)}</span>` : ``}
+            </div>
+
+            ${task.description ? `<div class="taskCardDesc" style="margin-top:8px;">${escapeHtml(task.description)}</div>` : ``}
+            ${task.blockers ? `<div class="taskCardDesc" style="margin-top:8px;">Blockers: ${escapeHtml(task.blockers)}</div>` : ``}
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px; min-width:220px;">
+            <select data-task-status="${escapeHtml(task.id)}">
+              ${TASK_STATUSES.map(
+                (status) => `
+                <option value="${escapeHtml(status)}" ${status === (task.status || "Backlog") ? "selected" : ""}>
+                  ${escapeHtml(status)}
+                </option>
+              `,
+              ).join("")}
+            </select>
+
+            <button class="btn" type="button" data-start-task="${escapeHtml(task.id)}">Start</button>
+            <button class="btn primary" type="button" data-done-task="${escapeHtml(task.id)}">Mark Done</button>
+            <button class="btn danger" type="button" data-blocked-task="${escapeHtml(task.id)}">Mark Blocked</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderCompletedTaskCard(task) {
+    return `
+      <div class="card" style="padding:16px; opacity:.96;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:220px;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+              <div style="font-size:16px; font-weight:800;">${escapeHtml(task.title || "Untitled Task")}</div>
+              <span class="pill completed">Done</span>
+            </div>
+
+            <div class="taskMetaRow">
+              <span class="taskChip">${escapeHtml(task.project || "No project")}</span>
+              <span class="taskChip ${priorityChipClass(task.priority)}">${escapeHtml(task.priority || "Medium")}</span>
+              ${task.dueDate ? `<span class="taskChip">Due ${escapeHtml(task.dueDate)}</span>` : ``}
+            </div>
+
+            ${task.description ? `<div class="taskCardDesc" style="margin-top:8px;">${escapeHtml(task.description)}</div>` : ``}
+            ${task.blockers ? `<div class="taskCardDesc" style="margin-top:8px;">Blockers: ${escapeHtml(task.blockers)}</div>` : ``}
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px; min-width:220px;">
+            <select data-completed-task-status="${escapeHtml(task.id)}">
+              ${TASK_STATUSES.map(
+                (status) => `
+                <option value="${escapeHtml(status)}" ${status === (task.status || "Done") ? "selected" : ""}>
+                  ${escapeHtml(status)}
+                </option>
+              `,
+              ).join("")}
+            </select>
+
+            <button class="btn" type="button" data-reopen-task="${escapeHtml(task.id)}">Move to In Progress</button>
+            <button class="btn danger" type="button" data-reblock-task="${escapeHtml(task.id)}">Move to Blocked</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
 
   async function loadMyAssignedTasks(uid, profileData) {
-    const listEl = qs("assignedTasksList");
-    if (!listEl) return;
+    const activeListEl = qs("assignedTasksList");
+    const completedListEl = qs("completedTasksList");
 
-    listEl.innerHTML = `<div class="small">Loading assigned tasks…</div>`;
+    if (activeListEl) {
+      activeListEl.innerHTML = `<div class="small">Loading assigned tasks…</div>`;
+    }
+    if (completedListEl) {
+      completedListEl.innerHTML = `<div class="small">Loading completed tasks…</div>`;
+    }
 
     try {
-      const myName = normalizeName(profileData?.name || user.displayName || "");
-
       const snap = await db
         .collection("boardTasks")
         .where("assignedUid", "==", uid)
         .get();
 
-      let docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-      docs.sort((a, b) => {
-        const rankDiff = priorityRank(b.priority) - priorityRank(a.priority);
-        if (rankDiff !== 0) return rankDiff;
-        return (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0);
-      });
+      const activeDocs = docs
+        .filter((t) => t.status !== "Done")
+        .sort((a, b) => {
+          const priorityDiff = priorityRank(b.priority) - priorityRank(a.priority);
+          if (priorityDiff !== 0) return priorityDiff;
+
+          const aDue = a.dueDate || "9999-12-31";
+          const bDue = b.dueDate || "9999-12-31";
+          if (aDue !== bDue) return aDue.localeCompare(bDue);
+
+          return (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0);
+        });
+
+      const completedDocs = docs
+        .filter((t) => t.status === "Done")
+        .sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
 
       const today = todayISO();
-      const newTasks = docs.filter((t) => t.seenByAssignee === false).length;
-      const dueToday = docs.filter(
-        (t) => (t.dueDate || "") === today && t.status !== "Done",
-      ).length;
-      const blocked = docs.filter((t) => t.status === "Blocked").length;
+      const newTasks = activeDocs.filter((t) => t.seenByAssignee === false).length;
+      const dueToday = activeDocs.filter((t) => (t.dueDate || "") === today).length;
+      const blocked = activeDocs.filter((t) => t.status === "Blocked").length;
 
       if (qs("assignedCount")) {
-        qs("assignedCount").innerText = String(docs.length);
+        qs("assignedCount").innerText = String(activeDocs.length);
       }
       if (qs("newAssignedCount")) {
         qs("newAssignedCount").innerText = String(newTasks);
@@ -653,55 +760,19 @@ async function initDashboardPage() {
         qs("assignedBlockedCount").innerText = String(blocked);
       }
 
-      if (!docs.length) {
-        listEl.innerHTML = `<div class="emptyState">No tasks assigned to you yet.</div>`;
-        return;
+      if (activeListEl) {
+        activeListEl.innerHTML = activeDocs.length
+          ? activeDocs.map(renderAssignedTaskCard).join("")
+          : `<div class="emptyState">No active tasks assigned to you right now.</div>`;
       }
 
-      listEl.innerHTML = docs
-        .map(
-          (task) => `
-        <div class="card" style="padding:16px;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
-            <div style="flex:1; min-width:220px;">
-              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-                <div style="font-size:16px; font-weight:800;">${escapeHtml(task.title || "Untitled Task")}</div>
-                ${task.seenByAssignee === false ? `<span class="pill ontrack">New</span>` : ``}
-              </div>
+      if (completedListEl) {
+        completedListEl.innerHTML = completedDocs.length
+          ? completedDocs.map(renderCompletedTaskCard).join("")
+          : `<div class="emptyState">No completed tasks yet.</div>`;
+      }
 
-              <div class="taskMetaRow">
-                <span class="taskChip">${escapeHtml(task.project || "No project")}</span>
-                <span class="taskChip ${priorityChipClass(task.priority)}">${escapeHtml(task.priority || "Medium")}</span>
-                <span class="taskChip">${escapeHtml(task.status || "Backlog")}</span>
-                ${task.dueDate ? `<span class="taskChip">Due ${escapeHtml(task.dueDate)}</span>` : ``}
-              </div>
-
-              ${task.description ? `<div class="taskCardDesc" style="margin-top:8px;">${escapeHtml(task.description)}</div>` : ``}
-              ${task.blockers ? `<div class="taskCardDesc" style="margin-top:8px;">Blockers: ${escapeHtml(task.blockers)}</div>` : ``}
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:8px; min-width:220px;">
-              <select data-task-status="${escapeHtml(task.id)}">
-                ${TASK_STATUSES.map(
-                  (status) => `
-                  <option value="${escapeHtml(status)}" ${status === (task.status || "Backlog") ? "selected" : ""}>
-                    ${escapeHtml(status)}
-                  </option>
-                `,
-                ).join("")}
-              </select>
-
-              <button class="btn" type="button" data-start-task="${escapeHtml(task.id)}">Start</button>
-              <button class="btn primary" type="button" data-done-task="${escapeHtml(task.id)}">Mark Done</button>
-              <button class="btn danger" type="button" data-blocked-task="${escapeHtml(task.id)}">Mark Blocked</button>
-            </div>
-          </div>
-        </div>
-      `,
-        )
-        .join("");
-
-      const unseenDocs = docs.filter((t) => t.seenByAssignee === false);
+      const unseenDocs = activeDocs.filter((t) => t.seenByAssignee === false);
       for (const task of unseenDocs) {
         await db.collection("boardTasks").doc(task.id).update({
           seenByAssignee: true,
@@ -712,74 +783,97 @@ async function initDashboardPage() {
       document.querySelectorAll("[data-task-status]").forEach((el) => {
         el.addEventListener("change", async () => {
           const taskId = el.getAttribute("data-task-status");
-          try {
-            await db
-              .collection("boardTasks")
-              .doc(taskId)
-              .update({
-                status: el.value,
-                updatedAt: serverTimestamp,
-                completedAt: el.value === "Done" ? serverTimestamp : null,
-                completedBy: el.value === "Done" ? user.uid : null,
-              });
-            await loadMyAssignedTasks(uid, profileData);
-          } catch (err) {
-            console.error(err);
-          }
+          await updateTaskStatus(taskId, el.value, uid, profileData);
         });
       });
 
       document.querySelectorAll("[data-start-task]").forEach((btn) => {
         btn.addEventListener("click", async () => {
           const taskId = btn.getAttribute("data-start-task");
-          try {
-            await db.collection("boardTasks").doc(taskId).update({
-              status: "In Progress",
-              updatedAt: serverTimestamp,
-            });
-            await loadMyAssignedTasks(uid, profileData);
-          } catch (err) {
-            console.error(err);
-          }
+          await updateTaskStatus(taskId, "In Progress", uid, profileData);
         });
       });
 
       document.querySelectorAll("[data-done-task]").forEach((btn) => {
         btn.addEventListener("click", async () => {
           const taskId = btn.getAttribute("data-done-task");
-          try {
-            await db.collection("boardTasks").doc(taskId).update({
-              status: "Done",
-              updatedAt: serverTimestamp,
-              completedAt: serverTimestamp,
-              completedBy: user.uid,
-            });
-            await loadMyAssignedTasks(uid, profileData);
-          } catch (err) {
-            console.error(err);
-          }
+          await updateTaskStatus(taskId, "Done", uid, profileData);
         });
       });
 
       document.querySelectorAll("[data-blocked-task]").forEach((btn) => {
         btn.addEventListener("click", async () => {
           const taskId = btn.getAttribute("data-blocked-task");
-          try {
-            await db.collection("boardTasks").doc(taskId).update({
-              status: "Blocked",
-              updatedAt: serverTimestamp,
-            });
-            await loadMyAssignedTasks(uid, profileData);
-          } catch (err) {
-            console.error(err);
-          }
+          await updateTaskStatus(taskId, "Blocked", uid, profileData);
+        });
+      });
+
+      document.querySelectorAll("[data-completed-task-status]").forEach((el) => {
+        el.addEventListener("change", async () => {
+          const taskId = el.getAttribute("data-completed-task-status");
+          await updateTaskStatus(taskId, el.value, uid, profileData);
+        });
+      });
+
+      document.querySelectorAll("[data-reopen-task]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const taskId = btn.getAttribute("data-reopen-task");
+          await updateTaskStatus(taskId, "In Progress", uid, profileData);
+        });
+      });
+
+      document.querySelectorAll("[data-reblock-task]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const taskId = btn.getAttribute("data-reblock-task");
+          await updateTaskStatus(taskId, "Blocked", uid, profileData);
         });
       });
     } catch (err) {
       console.error(err);
-      listEl.innerHTML = `<div class="emptyState">Unable to load assigned tasks.</div>`;
+
+      if (activeListEl) {
+        activeListEl.innerHTML = `<div class="emptyState">Unable to load assigned tasks.</div>`;
+      }
+      if (completedListEl) {
+        completedListEl.innerHTML = `<div class="emptyState">Unable to load completed tasks.</div>`;
+      }
     }
   }
+
+  await loadMyAssignedTasks(user.uid, profile);
+  await loadMyUpdates(user.uid);
+
+  const tabActive = qs("tabActive");
+  const tabCompleted = qs("tabCompleted");
+  const activeList = qs("assignedTasksList");
+  const completedList = qs("completedTasksList");
+
+  function showActiveTab() {
+    if (activeList) activeList.style.display = "grid";
+    if (completedList) completedList.style.display = "none";
+
+    tabActive?.classList.add("primary");
+    tabActive?.classList.remove("ghost");
+
+    tabCompleted?.classList.remove("primary");
+    tabCompleted?.classList.add("ghost");
+  }
+
+  function showCompletedTab() {
+    if (activeList) activeList.style.display = "none";
+    if (completedList) completedList.style.display = "grid";
+
+    tabCompleted?.classList.add("primary");
+    tabCompleted?.classList.remove("ghost");
+
+    tabActive?.classList.remove("primary");
+    tabActive?.classList.add("ghost");
+  }
+
+  tabActive?.addEventListener("click", showActiveTab);
+  tabCompleted?.addEventListener("click", showCompletedTab);
+
+  showActiveTab();
 
   async function loadMyUpdates(uid) {
     qs("rows").innerHTML =
@@ -815,7 +909,6 @@ async function initDashboardPage() {
       .join("");
   }
 }
-
 // ================= MANAGER PAGE (OVERVIEW) =================
 async function initManagerPage() {
   if (!qs("managerPage")) return;
